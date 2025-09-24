@@ -32,13 +32,13 @@ def load_parquet_files():
         logger.info("Dropped yellow trip table if exists")
 
         ## Checking if green trip table exists
-        con.execute(f"""
+        con.execute("""
             -- SQL goes here
             DROP TABLE IF EXISTS green_tripdata;
         """)
         logger.info("Dropped green trip table if exists")
 
-        con.execute(f"""
+        con.execute("""
             -- SQL goes here
             DROP TABLE IF EXISTS vehicle_emissions;
         """)
@@ -81,7 +81,7 @@ def load_parquet_files():
             SELECT
             vehicle_type,
             co2_grams_per_mile
-            FROM read_csv('../data/vehicle_emissions.csv');
+            FROM read_csv('/data/vehicle_emissions.csv');
         """)
         logger.info("Imported emissions csv file to DuckDB table")
 
@@ -110,16 +110,16 @@ def load_parquet_files():
 
         ## Counting rows
         # Yellow table row count
-        yellow_count = con.execute(f"""
+        yellow_count = con.execute("""
             SELECT COUNT(*) FROM yellow_tripdata;
         """).fetchone()[0]
 
         # Green table row count
-        green_count = con.execute(f"""
+        green_count = con.execute("""
             SELECT COUNT(*) FROM green_tripdata;
         """).fetchone()[0]
         # Vehicle emissions row count
-        vehicle_count = con.execute(f"""
+        vehicle_count = con.execute("""
             SELECT COUNT(*) FROM vehicle_emissions;
         """).fetchone()[0]
 
@@ -135,6 +135,10 @@ def load_parquet_files():
     except Exception as e:
         print(f"An error occurred: {e}")
         logger.error(f"An error occurred: {e}")
+    finally:
+        if con:
+            con.close()
+            logger.info("DuckDB connection closed")
 
 if __name__ == "__main__":
     load_parquet_files()
