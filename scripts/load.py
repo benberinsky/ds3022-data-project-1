@@ -51,11 +51,12 @@ def load_parquet_files():
                     CREATE TABLE yellow_tripdata AS
                     SELECT 
                     VendorID,
-                    tpep_pickup_datetime, tpep_dropoff_datetime,
+                    tpep_pickup_datetime AS pickup_datetime, 
+                    tpep_dropoff_datetime AS dropoff_datetime,
                     passenger_count,
-                    trip_distance,
-                    PULocationID,
-                    DOLocationID
+                    trip_distance AS distance,
+                    PULocationID AS pickup_location,
+                    DOLocationID AS dropoff_location
                     FROM read_parquet('{yellowtrip_file}');
                     """)
         logger.info("Imported yellow trip parquet file to DuckDB table")
@@ -63,13 +64,14 @@ def load_parquet_files():
         ## Green trip table
         con.execute(f"""
                     CREATE TABLE green_tripdata AS
-                    SELECT
+                    SELECT 
                     VendorID,
-                    lpep_pickup_datetime, lpep_dropoff_datetime,
+                    lpep_pickup_datetime AS pickup_datetime, 
+                    lpep_dropoff_datetime AS dropoff_datetime,
                     passenger_count,
-                    trip_distance,
-                    PULocationID,
-                    DOLocationID
+                    trip_distance AS distance,
+                    PULocationID AS pickup_location,
+                    DOLocationID AS dropoff_location
                     FROM read_parquet('{greentrip_file}');
                     """)
         logger.info("Imported green trip parquet file to DuckDB table")
@@ -81,7 +83,7 @@ def load_parquet_files():
             SELECT
             vehicle_type,
             co2_grams_per_mile
-            FROM read_csv('/data/vehicle_emissions.csv');
+            FROM read_csv('data/vehicle_emissions.csv');
         """)
         logger.info("Imported emissions csv file to DuckDB table")
 
@@ -106,7 +108,7 @@ def load_parquet_files():
             FROM read_parquet('https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2024-{i}.parquet');
             """)
             logger.info(f"Added green trip data for month {i}")
-            time.sleep(150)
+            time.sleep(60)
 
         ## Counting rows
         # Yellow table row count
@@ -124,8 +126,8 @@ def load_parquet_files():
         """).fetchone()[0]
 
         
-        print(f"Yellow Trips: {yellow_count}")
-        print(f"Green Trips: {green_count}")
+        print(f"Yellow Trip Rows: {yellow_count}")
+        print(f"Green Trip Rows: {green_count}")
         print(f"Vehicle Emissions Rows: {vehicle_count}")
 
         logger.info(f"Rows of each table have been logged as yellow: {yellow_count}, green: {green_count}, vehicle: {vehicle_count}")
@@ -135,10 +137,6 @@ def load_parquet_files():
     except Exception as e:
         print(f"An error occurred: {e}")
         logger.error(f"An error occurred: {e}")
-    finally:
-        if con:
-            con.close()
-            logger.info("DuckDB connection closed")
 
 if __name__ == "__main__":
     load_parquet_files()

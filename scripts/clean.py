@@ -99,8 +99,8 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM yellow_tripdata  
-                    WHERE trip_distance = 0
-                    OR trip_distance IS NULL;
+                    WHERE distance = 0
+                    OR distance IS NULL;
                     """)
         
         after_yellow_length = con.execute("""SELECT COUNT(*) FROM yellow_tripdata;""").fetchone()[0]
@@ -112,8 +112,8 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM green_tripdata  
-                    WHERE trip_distance = 0
-                    OR trip_distance IS NULL;
+                    WHERE distance = 0
+                    OR distance IS NULL;
                     """)
         
         after_green_length = con.execute("""SELECT COUNT(*) FROM green_tripdata;""").fetchone()[0]
@@ -127,7 +127,7 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM yellow_tripdata  
-                    WHERE trip_distance > 100;
+                    WHERE distance > 100;
                     """)
         
         after_yellow_length = con.execute("""SELECT COUNT(*) FROM yellow_tripdata;""").fetchone()[0]
@@ -139,7 +139,7 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM green_tripdata  
-                    WHERE trip_distance > 100;
+                    WHERE distance > 100;
                     """)
         
         after_green_length = con.execute("""SELECT COUNT(*) FROM green_tripdata;""").fetchone()[0]
@@ -153,9 +153,9 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM yellow_tripdata  
-                    WHERE date_diff('second', tpep_pickup_datetime, tpep_dropoff_datetime) > 86400
-                    OR tpep_pickup_datetime IS NULL
-                    OR tpep_dropoff_datetime IS NULL;
+                    WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400
+                    OR pickup_datetime IS NULL
+                    OR pickup_datetime IS NULL;
                     """)
         
         after_yellow_length = con.execute("""SELECT COUNT(*) FROM yellow_tripdata;""").fetchone()[0]
@@ -167,9 +167,9 @@ def clean_parquet_files():
 
         con.execute("""
                     DELETE FROM green_tripdata  
-                    WHERE date_diff('second', lpep_pickup_datetime, lpep_dropoff_datetime) > 86400
-                    OR lpep_pickup_datetime IS NULL
-                    OR lpep_dropoff_datetime IS NULL;
+                    WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400
+                    OR pickup_datetime IS NULL
+                    OR pickup_datetime IS NULL;
                     """)
         
         after_green_length = con.execute("""SELECT COUNT(*) FROM green_tripdata;""").fetchone()[0]
@@ -183,8 +183,8 @@ def clean_parquet_files():
         ### Finding and saving duplicate yellow rows(checking all vars)
         yellow_dups = con.execute("""
                                 SELECT COUNT(*) - COUNT(
-                                DISTINCT (VendorID, tpep_pickup_datetime, tpep_dropoff_datetime,
-                                passenger_count, trip_distance, PULocationID, DOLocationID))
+                                DISTINCT (VendorID, pickup_datetime, dropoff_datetime,
+                                passenger_count, distance, pickup_location, dropoff_location))
                                 FROM yellow_tripdata;
                                 """).fetchone()[0]
         print(f"Yellow trip duplicate rows: {yellow_dups} remaining after clean")
@@ -193,8 +193,8 @@ def clean_parquet_files():
         ### Finding and saving duplicate green rows(checking all vars)
         green_dups = con.execute("""
                                 SELECT COUNT(*) - COUNT(
-                                DISTINCT (VendorID, lpep_pickup_datetime, lpep_dropoff_datetime,
-                                passenger_count, trip_distance, PULocationID, DOLocationID))
+                                DISTINCT (VendorID, pickup_datetime, dropoff_datetime,
+                                passenger_count, distance, pickup_location, dropoff_location))
                                 FROM green_tripdata;
                                 """).fetchone()[0]
         print(f"Green trip duplicate rows: {green_dups} remaining after clean")
@@ -224,7 +224,7 @@ def clean_parquet_files():
         ### Calculating and saving yellow trip rows where length = 0
         yellow_no_dist = con.execute(f"""
             SELECT COUNT(*) FROM yellow_tripdata
-            WHERE trip_distance = 0;
+            WHERE distance = 0;
         """).fetchone()[0]
         print(f"Yellow trip rows with no length: {yellow_no_dist} remaining after clean")
         logger.info(f"Yellow trip rows with no length: {yellow_no_dist} remaining after clean")
@@ -232,7 +232,7 @@ def clean_parquet_files():
         ### Calculating and saving green trip rows where length = 0
         green_no_dist = con.execute(f"""
             SELECT COUNT(*) FROM green_tripdata
-            WHERE trip_distance = 0;
+            WHERE distance = 0;
         """).fetchone()[0]
         print(f"Green trip rows with no length: {green_no_dist} remaining after clean")
         logger.info(f"Green trip rows with no length: {green_no_dist} remaining after clean")
@@ -242,7 +242,7 @@ def clean_parquet_files():
         ### Calculating and saving yellow trip rows where length > 100
         yellow_too_far = con.execute(f"""
             SELECT COUNT(*) FROM yellow_tripdata
-            WHERE trip_distance > 100;
+            WHERE distance > 100;
         """).fetchone()[0]
         print(f"Yellow trip rows > 100 miles: {yellow_too_far} remaining after clean")
         logger.info(f"Yellow trip rows > 100 miles: {yellow_too_far} remaining after clean")
@@ -250,7 +250,7 @@ def clean_parquet_files():
         ### Calculating and saving green trip rows where length > 100
         green_too_far = con.execute(f"""
             SELECT COUNT(*) FROM green_tripdata
-            WHERE trip_distance > 100;
+            WHERE distance > 100;
         """).fetchone()[0]
         print(f"Green trip rows > 100: {green_too_far} remaining after clean")
         logger.info(f"Green trip rows > 100: {green_too_far} remaining after clean")
@@ -260,7 +260,7 @@ def clean_parquet_files():
         ### Calculating and saving yellow trips > 1 day
         yellow_too_long = con.execute(f"""
             SELECT COUNT(*) FROM yellow_tripdata
-            WHERE date_diff('second', tpep_pickup_datetime, tpep_dropoff_datetime) > 86400;
+            WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400;
         """).fetchone()[0]
         print(f"Yellow trip rows > 1 day: {yellow_too_long} remaining after clean")
         logger.info(f"Yellow trip rows > 1 day: {yellow_too_long} remaining after clean")
@@ -268,7 +268,7 @@ def clean_parquet_files():
         ### Calculating and saving green trips > 1 day
         green_too_long = con.execute(f"""
             SELECT COUNT(*) FROM green_tripdata
-            WHERE date_diff('second', lpep_pickup_datetime, lpep_dropoff_datetime) > 86400;
+            WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400;
         """).fetchone()[0]
         print(f"Green trip rows > 1 day: {green_too_long} remaining after clean")
         logger.info(f"Green trip rows > 1 day: {green_too_long} remaining after clean")
