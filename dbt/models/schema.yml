@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: emissions
+    schema: main  
+    tables:
+      - name: vehicle_emissions
+      - name: yellow_tripdata
+      - name: green_tripdata
