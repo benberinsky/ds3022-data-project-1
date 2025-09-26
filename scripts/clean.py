@@ -8,7 +8,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def clean_parquet_files():
+def clean_tables():
 
     con = None
 
@@ -278,4 +278,4 @@ def clean_parquet_files():
         logger.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    clean_parquet_files()
+    clean_tables()
