@@ -23,7 +23,7 @@ def load_parquet_files():
     con = None
     # Creating list of months with proper formatting
     all_months = [f"{i:02d}" for i in range(1, 13)] 
-    years = list(range(2015, 2024)) # Years 2015 through 2024
+    years = list(range(2015, 2025)) # Years 2015 through 2024
 
     try:
         # Connect to local DuckDB instance
