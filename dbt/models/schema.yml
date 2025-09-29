@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: emissions
-    schema: main  
+    schema: main 
     tables:
       - name: vehicle_emissions
       - name: yellow_tripdata
