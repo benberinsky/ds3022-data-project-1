@@ -24,7 +24,7 @@ def analyze_tables():
             SELECT MAX(trip_co2_kgs)
             FROM yellow_tripdata_transformed;
             """).fetchone()[0]
-        print(f"The highest co2 producing trip produced {yellow_co2_max} KGs of co2")
+        print(f"The highest co2 producing yellow trip produced {yellow_co2_max} KGs of co2")
         logger.info(f"Found max co2 trip for yellow taxis as {yellow_co2_max}")
 
         ## Largest carbon producing trip(green taxi)
@@ -32,7 +32,7 @@ def analyze_tables():
             SELECT MAX(trip_co2_kgs)
             FROM green_tripdata_transformed;
             """).fetchone()[0]
-        print(f"The highest co2 producing trip produced {green_co2_max} KGs of co2")
+        print(f"The highest co2 producing green trip produced {green_co2_max} KGs of co2")
         logger.info(f"Found max co2 trip for green taxis as {green_co2_max}")
 
         # Finding heaviest and lightest carbon producing hours 
@@ -113,11 +113,12 @@ def analyze_tables():
         
         # Finding heaviest and lightest carbon producing weeks 
 
-        ## Heaviest/lightest co2 weeks for yellow trips
+        ## Heaviest/lightest co2 weeks for yellow trips(some years marked as 53 weeks, ignoring)
         yellow_co2_weeks = con.execute(f"""
             SELECT week_of_year,
             SUM(trip_co2_kgs) as total_co2
             FROM yellow_tripdata_transformed
+            WHERE week_of_year BETWEEN 0 AND 52
             GROUP BY week_of_year
             ORDER BY total_co2 DESC;
             """).fetchall()
@@ -136,6 +137,7 @@ def analyze_tables():
             SELECT week_of_year,
             SUM(trip_co2_kgs) as total_co2
             FROM green_tripdata_transformed
+            WHERE week_of_year BETWEEN 0 AND 52
             GROUP BY week_of_year
             ORDER BY total_co2 DESC;
             """).fetchall()
@@ -189,23 +191,37 @@ def analyze_tables():
 
         # Generating plots
 
+        yellow_co2_years = con.execute(f"""
+            SELECT specified_year,
+            SUM(trip_co2_kgs) as total_co2
+            FROM yellow_tripdata_transformed
+            WHERE specified_year BETWEEN 2015 AND 2024
+            GROUP BY specified_year;
+            """).fetchall()
+        
+        logger.info(f'Recorded yellow trip years as {[row[0] for row in yellow_co2_years]}')
+        logger.info(f'Recorded yellow trip co2 as {[row[1] for row in yellow_co2_years]}')
+
         # Extract months (x-axis values)
-        months = [row[0] for row in yellow_co2_months]
+        years = [row[0] for row in yellow_co2_years]
         # Extract co2 totals (y-axis values)
-        co2_totals = [row[1] for row in yellow_co2_months]
+        co2_totals = [row[1] for row in yellow_co2_years]
 
         plt.figure(figsize=(10, 6))
         # Create bar chart with yellow cab color
-        plt.bar(months, co2_totals, color='#FDB813')
+        plt.bar(years, co2_totals, color='#FDB813')
 
-        plt.title('Carbon Emission for Yellow Cabs by Month', fontsize=16, fontweight='bold')
+        plt.title('Carbon Emission for Yellow Cabs by Year(2015-2024)', fontsize=16, fontweight='bold')
 
         # Setting axis labels
-        plt.xlabel("Month of Year", fontsize=12)
-        plt.ylabel("Total CO₂ (millions of kg)", fontsize=12)
+        plt.xlabel("Year", fontsize=12)
+        plt.ylabel("Total CO₂ (one hundred million kgs)", fontsize=12)
 
         # Setting xticks
-        plt.xticks(range(1, 13))
+        plt.xticks(years)  # Set x-ticks to the years
+
+        # Adding gridlines for better readability
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
 
         # Remove spines for cleaner look
         plt.gca().spines['top'].set_visible(False)
@@ -213,36 +229,50 @@ def analyze_tables():
         plt.tight_layout()
 
         # Save figure to project directory
-        plt.savefig("yellow_cabs_co2_by_month.png")
+        plt.savefig("yellow_cabs_co2_by_year.png")
 
 
         # Creating greencab plot
 
+        green_co2_years = con.execute(f"""
+            SELECT specified_year,
+            SUM(trip_co2_kgs) as total_co2
+            FROM green_tripdata_transformed
+            WHERE specified_year BETWEEN 2015 AND 2024
+            GROUP BY specified_year;
+            """).fetchall()
+        
+        logger.info(f'Recorded green trip years as {[row[0] for row in yellow_co2_years]}')
+        logger.info(f'Recorded green trip co2 as {[row[1] for row in yellow_co2_years]}')
+
         # Extract months (x-axis values)
-        months = [row[0] for row in green_co2_months]
+        years = [row[0] for row in green_co2_years]
         # Extract co2 totals (y-axis values)
-        co2_totals = [row[1] for row in green_co2_months]
+        co2_totals = [row[1] for row in green_co2_years]
 
         plt.figure(figsize=(10, 6))
-        # Create bar chart with green cab color
-        plt.bar(months, co2_totals, color='#3BB143')
+        # Create bar chart with yellow cab color
+        plt.bar(years, co2_totals, color='#013220')
 
-        plt.title('Carbon Emission for Green Cabs by Month', fontsize=16, fontweight='bold')
+        plt.title('Carbon Emissions for Green Cabs by Year(2015-2024)', fontsize=16, fontweight='bold')
 
         # Setting axis labels
-        plt.xlabel("Month of Year", fontsize=12)
-        plt.ylabel("Total CO₂", fontsize=12)
+        plt.xlabel("Year", fontsize=12)
+        plt.ylabel("Total CO₂ (ten million kgs)", fontsize=12)
 
         # Setting xticks
-        plt.xticks(range(1, 13))
+        plt.xticks(years)  # Set x-ticks to the years
 
+        # Adding gridlines for better readability
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        
         # Remove spines for cleaner look
         plt.gca().spines['top'].set_visible(False)
         plt.gca().spines['right'].set_visible(False)
         plt.tight_layout()
 
         # Save figure to project directory
-        plt.savefig("green_cabs_co2_by_month.png")
+        plt.savefig("green_cabs_co2_by_year.png")
 
 
     except Exception as e:

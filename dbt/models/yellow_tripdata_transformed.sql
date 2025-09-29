@@ -11,13 +11,16 @@ SELECT
     extract(hour from yt.pickup_datetime) as hour_of_day, 
 
     -- Extract day of week
-    extract(dow from yt.pickup_datetime) as day_of_week,
+    strftime(yt.pickup_datetime, '%a') as day_of_week,
 
     -- Extract week number
     extract(week from yt.pickup_datetime) as week_of_year,
 
     -- Extract month number
-    extract(month from yt.pickup_datetime) as month_of_year
+    strftime(yt.pickup_datetime, '%b') as month_of_year,
+
+    -- Extract year(extra added step for plotting)
+    extract(year from yt.pickup_datetime) as specified_year
 
 from {{ source('emissions','yellow_tripdata') }} yt
 join {{ source('emissions','vehicle_emissions') }} ve
