@@ -31,7 +31,7 @@ def clean_tables():
         con.execute("SET threads=4;") 
         logger.info("Set threads to 4 for stable processing.")
 
-        years = list(range(2015, 2024)) 
+        years = list(range(2015, 2025)) 
         
         # Process each year individually to manage memory usage
         for year in years:
